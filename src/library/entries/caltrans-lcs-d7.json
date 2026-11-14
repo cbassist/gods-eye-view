@@ -1,0 +1,37 @@
+{
+  "id": "caltrans-lcs-d7",
+  "kind": "dataset",
+  "family": "movement",
+  "title": "Caltrans active lane closures \u2014 District 7",
+  "provider": "Caltrans",
+  "description": "Official active lane closures in Los Angeles and Ventura counties. Begin points only, not road-following geometry or proof of full road closure. Snapshot on Add, cached five minutes; schedules do not prove activity.",
+  "icon": "\u26a0",
+  "maintainer": "github:cbassist",
+  "coverage": {
+    "countries": ["US"],
+    "bbox": [-119.5, 32.75, -117.5, 35]
+  },
+  "source": {
+    "format": "caltrans-lcs",
+    "url": "https://cwwp2.dot.ca.gov/data/d7/lcs/lcsStatusD07.json",
+    "fetch": "browser-direct",
+    "cacheSeconds": 300,
+    "maxBytes": 33554432,
+    "maxFeatures": 1000
+  },
+  "display": {
+    "color": "#ec835a",
+    "label": "name",
+    "fields": ["closureDetails", "geometryDetails"]
+  },
+  "licence": {
+    "name": "Caltrans public data; attribution required",
+    "url": "https://dot.ca.gov/conditions-of-use"
+  },
+  "attribution": {
+    "text": "California Department of Transportation (Caltrans)",
+    "url": "https://cwwp2.dot.ca.gov/lane-closure.html"
+  },
+  "status": "community",
+  "reviewed": "2026-11-14"
+}

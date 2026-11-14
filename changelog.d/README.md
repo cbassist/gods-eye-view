@@ -27,6 +27,19 @@ The text is spliced in unchanged apart from trailing whitespace, so what you
 write here is what ships. Fragments are deliberately outside
 `scripts/format-scope.json`, so `npm run format` never reflows one.
 
+## Pre-PR drafts
+
+Before an actual pull request number exists, stage draft entries in
+`docs/changelog-drafts/`, outside this release-input directory. Drafts are not
+release fragments and do not satisfy the numbered-fragment requirement for a
+pull request. Do not invent PR numbers or use `0-*` placeholders here.
+
+Preserve separately owned drafts while work is being coordinated. Once a real
+PR is authorized and numbered, its owner promotes the relevant content into
+exactly one `changelog.d/<actual-pr-number>-<slug>.md` before PR acceptance.
+Consolidate drafts belonging to that PR at promotion; unrelated PRs retain
+separate entries. Draft filenames do not assign PR numbers or grouping.
+
 At release time:
 
 ```

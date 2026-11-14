@@ -33,6 +33,7 @@ export { CCTV_FRAME_FETCH_TIMEOUT_MS, fetchCctvImageFromUpstream };
  *   GET /api/cctv/stream/:id     — stream info (feedType, URLs) for a camera
  *   GET /api/cctv/media/:id      — proxy live video media from upstream
  *   GET /api/cctv/frame/:id      — single frame with fallback chain
+ *     ?upstreamOnly=1           — skip paid historical fallback on upstream failure
  *
  * @returns {import('vite').Plugin}
  */
@@ -724,6 +725,16 @@ export function cctvProxy({ sourceRoot = process.cwd() } = {}) {
             'X-CCTV-Source': 'upstream-image',
           });
           res.end(upstreamImage.body);
+          return;
+        }
+
+        // Evidence-only callers must not trigger a paid historical fallback.
+        if (url.searchParams.get('upstreamOnly') === '1') {
+          res.writeHead(503, {
+            'Content-Type': 'application/json',
+            'Cache-Control': 'no-store',
+          });
+          res.end(JSON.stringify({ error: 'upstream_image_unavailable' }));
           return;
         }
 

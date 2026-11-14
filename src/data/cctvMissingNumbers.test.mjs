@@ -219,6 +219,56 @@ test('a Catalonia feature with a blank longitude is not read as the zero meridia
   assert.equal(isLikelyCataloniaCoordinate(valid.lat, valid.lon), true);
 });
 
+test('Caltrans D11 parenthesized camera codes retain stable IDs', async (t) => {
+  quiet(t);
+  withEnv(t, { CCTV_CALTRANS_DISTRICTS: '11' });
+  // Location fields and still paths from the public D11 catalog.
+  const locations = [
+    [
+      '(C214) SB 5 :  Via De San Ysidro',
+      '32.55138',
+      '-117.04596',
+      'c214sb5viadesanysidro',
+    ],
+    [
+      '(C105)I-5 : Dairy Mart Road',
+      '32.55816',
+      '-117.06206',
+      'c105i5dairymartroad',
+    ],
+  ];
+  t.mock.method(globalThis, 'fetch', async () =>
+    Response.json({
+      data: locations.map(([locationName, latitude, longitude, image]) => ({
+        cctv: {
+          inService: 'true',
+          location: {
+            locationName,
+            latitude,
+            longitude,
+            nearbyPlace: 'San Ysidro',
+            direction: 'South',
+          },
+          imageData: {
+            static: {
+              currentImageURL: `https://cwwp2.dot.ca.gov/data/d11/cctv/image/${image}/${image}.jpg`,
+            },
+          },
+        },
+      })),
+    }),
+  );
+  const cameras = await loadCaltransSourcesFromOpenData();
+  assert.deepEqual(cameras.map((camera) => camera.id).sort(), [
+    'ca-d11-c105',
+    'ca-d11-c214',
+  ]);
+  assert.equal(
+    cameras.find((camera) => camera.id === 'ca-d11-c105').name,
+    'I-5 : Dairy Mart Road (San Ysidro)',
+  );
+});
+
 test('a Caltrans camera with a blank elevation keeps the 150 m ground prior', async (t) => {
   quiet(t);
   withEnv(t, { CCTV_CALTRANS_DISTRICTS: '4' });

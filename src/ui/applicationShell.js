@@ -65,6 +65,10 @@ import { useHudStore } from './stores/hud.js';
 import { useDisplayStore } from './stores/display.js';
 import { useLocaleStore } from './stores/locale.js';
 import { useLocationStore } from './stores/location.js';
+import { useRtcArrivalsStore } from './stores/rtcArrivals.js';
+import { createRtcPanel } from './rtcArrivals.js';
+import { useBorderWaitsStore } from './stores/borderWaits.js';
+import { createBorderPanel } from './borderWaits.js';
 import { useCockpitStore } from './stores/cockpit.js';
 import { useGlobeActionsStore } from './stores/globeActions.js';
 import { useRecordingStore } from './stores/recording.js';
@@ -164,6 +168,26 @@ export class StyleManager extends ShellFacade {
     });
     // Vue views share this runtime and its stores; dispose unmounts them.
     this._ui = createUiRuntime({ pinia: applicationPinia() });
+    const rtcStore = useRtcArrivalsStore(applicationPinia());
+    this._rtcPanel = createRtcPanel({
+      publish: (state) => rtcStore.publish(state),
+      navigate: (row) =>
+        viewer.camera.flyTo({
+          destination: Cesium.Cartesian3.fromDegrees(
+            row.longitude,
+            row.latitude,
+            900,
+          ),
+          duration: 1.5,
+        }),
+    });
+    this._rtcOwner = rtcStore.connect(this._rtcPanel);
+    const borderStore = useBorderWaitsStore(applicationPinia());
+    this._borderPanel = createBorderPanel({
+      publish: (state) => borderStore.publish(state),
+      navigate: () => this._locationNavigation?._onPoiClick('san-ysidro', 0),
+    });
+    this._borderOwner = borderStore.connect(this._borderPanel);
     this._feedback = new ShellFeedback({
       readLayers: () => withPlacePacks(this._dataManager?.getAll?.() || []),
     });
@@ -1859,6 +1883,10 @@ export class StyleManager extends ShellFacade {
     this._shareRestoration.destroy();
     this._feedback.clearLoadingStatus();
     this._disposed = true;
+    this._rtcPanel?.destroy();
+    useRtcArrivalsStore(applicationPinia()).detach(this._rtcOwner);
+    this._borderPanel?.destroy();
+    useBorderWaitsStore(applicationPinia()).detach(this._borderOwner);
     this._navigation.stop();
     this._shareState.destroy();
     this._locationNavigation.destroy();

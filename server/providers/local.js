@@ -16,6 +16,7 @@ import { radioBrowserProxy } from './radio.js';
 import { gbfsProxy } from './gbfs.js';
 import { localReceiversProxy } from './local-receivers.js';
 import { transitProxy } from './transit.js';
+import { rtcArrivalsProxy } from './rtcArrivals.js';
 import { railProxy } from './rail.js';
 import { adsbLolProxy } from './aircraft/adsb-lol.js';
 import { aisLiveProxy } from './vessels/ais-live.js';
@@ -37,6 +38,7 @@ import { acartiaProxy } from './acartia.js';
 import { cycloneProxy } from './cyclones.js';
 import { windProxy } from './wind.js';
 import { libraryProxy } from './library.js';
+import { borderWaitsProxy } from './borderWaits.js';
 
 /**
  * Construct the local provider plugins in their established order.
@@ -56,6 +58,7 @@ function localProviderPlugins({
   )
     throw new TypeError('nominatimStorageDir must be an absolute directory');
   return [
+    borderWaitsProxy(),
     openSkyProxy(),
     celestrakProxy(),
     tomtomProxy(),
@@ -73,6 +76,7 @@ function localProviderPlugins({
     gbfsProxy(),
     localReceiversProxy(),
     transitProxy(),
+    rtcArrivalsProxy(),
     railProxy(),
     adsbLolProxy(),
     aisLiveProxy(),

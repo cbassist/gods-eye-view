@@ -109,8 +109,9 @@ export const CALTRANS_CCTV_URL = (district) =>
 /** Districts fetched by default: SF Bay (4), LA (7), San Diego (11), Sacramento (3). */
 export const DEFAULT_CALTRANS_DISTRICTS = '4,7,11,3';
 export const DEFAULT_CALTRANS_MAX_SOURCES = 300;
-/** Prioritization anchors: downtown cores of the four default metros. */
+/** Prioritization anchors: four downtown cores plus the San Ysidro approach. */
 export const CALTRANS_ANCHORS = [
+  { lat: 32.55138, lon: -117.04596 }, // San Ysidro (D11 C214)
   { lat: 37.7793, lon: -122.4193 }, // San Francisco
   { lat: 34.0537, lon: -118.2428 }, // Los Angeles
   { lat: 32.7157, lon: -117.1611 }, // San Diego

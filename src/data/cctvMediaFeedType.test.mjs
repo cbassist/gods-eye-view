@@ -206,6 +206,21 @@ test('an unregistered camera id is refused by /media the same way', async (t) =>
   assert.equal(app.requests.length, 0);
 });
 
+test('upstream-only border stills cannot spend a configured Google fallback key', async (t) => {
+  const app = mount(t, () => upstreamResponse({ status: 503 }));
+  // Synthetic fixture only; all fetches are intercepted by mount().
+  process.env.GOOGLE_MAPS_SERVER_API_KEY = 'test-not-a-real-key';
+  const response = await app.call(`/frame/${STILL.id}?upstreamOnly=1`);
+  assert.equal(response.statusCode, 503);
+  assert.deepEqual(JSON.parse(response.body), {
+    error: 'upstream_image_unavailable',
+  });
+  assert.equal(
+    app.requests.some((request) => request.url.includes('maps.googleapis.com')),
+    false,
+  );
+});
+
 test('a video camera is still relayed by /media', async (t) => {
   const app = mount(t, () =>
     upstreamResponse({

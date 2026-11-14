@@ -227,6 +227,40 @@ test('a pack trimmed to its nearest cameras reports how many it offered', async 
   assert.deepEqual(kept.region, { west: 0, south: 0, east: 0, north: 4 });
 });
 
+test('San Ysidro approach cameras survive the Caltrans cap and shared allocation', async () => {
+  const { prioritizeSources } =
+    await import('../../server/providers/cctv/normalize.js');
+  const { CALTRANS_ANCHORS, DEFAULT_CALTRANS_MAX_SOURCES } =
+    await import('../../server/providers/cctv/constants.js');
+  const border = [
+    { id: 'ca-d11-c214', lat: 32.55138, lon: -117.04596 },
+    { id: 'ca-d11-c105', lat: 32.55816, lon: -117.06206 },
+  ];
+  // Enough metro cameras closer to downtown San Diego to crowd out the border.
+  const metro = Array.from({ length: 300 }, (_, i) => ({
+    id: `metro-${i}`,
+    lat: 32.74 + i * 0.00001,
+    lon: -117.1611,
+  }));
+  const sources = prioritizeSources(
+    [...metro, ...border],
+    DEFAULT_CALTRANS_MAX_SOURCES,
+    CALTRANS_ANCHORS,
+  );
+  assert.equal(sources.length, 300);
+  for (const camera of border)
+    assert.ok(sources.includes(camera), `${camera.id} survives pack cap`);
+  const merged = allocateSourceCap(
+    [{ name: 'caltrans', sources }, pack('other', 300)],
+    8,
+  );
+  for (const camera of border)
+    assert.ok(
+      merged.sources.includes(camera),
+      `${camera.id} survives shared cap`,
+    );
+});
+
 /** A CCTV_SOURCES_JSON value with `count` cameras named `<prefix>-<i>`. */
 const envSources = (prefix, count = 3) =>
   JSON.stringify(

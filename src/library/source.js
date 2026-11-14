@@ -10,6 +10,11 @@
 import { loadLibraryDataset, boundLibraryFeatures } from './formats.js';
 import { readResponseTextCapped } from '../sources/httpBody.js';
 import { BBOX_TOKEN } from './manifest.js';
+import {
+  CALTRANS_LCS_URLS,
+  createCaltransLaneClosureSource,
+} from '../sources/caltransLaneClosures.js';
+import { caltransLaneClosuresToGeojson } from '../sources/caltransLaneClosureGeojson.js';
 
 /** Partitions read per view before giving up, in parallel batches. */
 const MAX_PARTITION_READS_PER_VIEW = 8;
@@ -167,6 +172,16 @@ export function createLibrarySource({
   now = () => Date.now(),
   loadParquet = () => import('./parquet.js'),
 }) {
+  const caltrans = createCaltransLaneClosureSource({
+    fetch: (url, options) =>
+      fetchImpl(url, {
+        ...options,
+        mode: 'cors',
+        referrerPolicy: 'no-referrer',
+        redirect: 'error',
+      }),
+    now,
+  });
   const known = new Set(entries.map(({ id }) => id));
   const indexes = new Map();
   const partitionCache = new Map();
@@ -399,6 +414,28 @@ export function createLibrarySource({
    * @returns {Promise<{ features: object[], truncated: boolean }>}
    */
   async function loadDataset(entry, { signal, bbox = null } = {}) {
+    if (entry.source.format === 'caltrans-lcs') {
+      const district = Object.keys(CALTRANS_LCS_URLS).find(
+        (key) => CALTRANS_LCS_URLS[key] === entry.source.url,
+      );
+      const snapshot = await caltrans.load(district, { signal });
+      const collection = caltransLaneClosuresToGeojson(snapshot, {
+        maxFeatures: entry.source.maxFeatures,
+      });
+      const bounded = boundLibraryFeatures(collection.features, {
+        maxFeatures: entry.source.maxFeatures,
+        display: entry.display,
+      });
+      return {
+        ...collection,
+        features: bounded.features,
+        truncated: collection.truncated || bounded.truncated,
+      };
+    }
+    if (entry.source.format === 'nwps') {
+      const timeout = AbortSignal.timeout(20_000);
+      signal = signal ? AbortSignal.any([signal, timeout]) : timeout;
+    }
     if (entry.source.format === 'geoparquet') {
       if (entry.source.partitions) {
         if (!bbox) return { features: [], truncated: false };

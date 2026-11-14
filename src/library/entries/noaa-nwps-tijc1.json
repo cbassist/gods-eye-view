@@ -1,0 +1,37 @@
+{
+  "id": "noaa-nwps-tijc1",
+  "kind": "dataset",
+  "family": "environment",
+  "title": "Tijuana river hydrology — TIJC1",
+  "provider": "NOAA NWPS",
+  "description": "Latest river stage/flow at International Border, San Diego County. Observation timestamp shown; missing flow stays unavailable. Not water quality or border waits. Snapshot on Add, not continuous monitoring.",
+  "icon": "≈",
+  "maintainer": "github:cbassist",
+  "coverage": {
+    "countries": ["US"],
+    "bbox": [-117.05, 32.53, -117.02, 32.55]
+  },
+  "source": {
+    "format": "nwps",
+    "url": "https://api.water.noaa.gov/nwps/v1/gauges/tijc1",
+    "fetch": "browser-direct",
+    "cacheSeconds": 300,
+    "maxBytes": 1048576,
+    "maxFeatures": 1
+  },
+  "display": {
+    "color": "#63b3ed",
+    "label": "name",
+    "fields": ["Observed", "ObservedUTC"]
+  },
+  "licence": {
+    "name": "NWS public-domain data (unless otherwise noted)",
+    "url": "https://www.weather.gov/disclaimer"
+  },
+  "attribution": {
+    "text": "NOAA/NWS National Water Prediction Service; IBWC — International Boundary and Water Commission",
+    "url": "https://water.noaa.gov/gauges/tijc1"
+  },
+  "status": "community",
+  "reviewed": "2026-11-14"
+}

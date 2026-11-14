@@ -107,6 +107,10 @@ export const NYC_DOT_DISCLAIMER =
   'The public is advised to observe posted signage for compliance with applicable laws and regulations.';
 
 export const DATA_CREDITS = [
+  {
+    key: 'cbp-border-waits',
+    html: 'Border wait reports: <a href="https://bwt.cbp.gov" target="_blank" rel="noopener">U.S. Customs and Border Protection</a> (reported estimates, not guaranteed crossing times)',
+  },
   // ── Live sources ────────────────────────────────────────────────
   {
     key: 'opensky',

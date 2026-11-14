@@ -1,5 +1,38 @@
 # God's Eye View Current State
 
+## RTC Las Vegas stop-arrival board (personal local use)
+
+LOCATION → **RTC Las Vegas arrivals** opens an opt-in searchable stop board,
+not a vehicle-position layer. The local development/preview endpoint
+`GET /api/rtc-arrivals` uses `src/sources/rtcArrivals.js` and current official
+GTFS trips/stops/routes. Static GTFS is downloaded only on demand, retained
+in memory, and conditionally revalidated daily (ETag/Last-Modified). ZIP and
+inflated tables are bounded and CRC checked; no upstream data is bundled or
+written to disk. Failed static refreshes back off for 60 seconds and do not
+serve stale success. The route refuses non-loopback sockets and cross-site
+browser requests; it must not be exposed through a public reverse proxy.
+
+The board polls every 60 seconds only while open and visible, searches stop
+names/IDs, routes and destinations, and shows the earliest 50 matching future
+arrivals with an explicit matching total. Each arrival displays Las Vegas local
+time and an ISO timestamp in its `time` element, plus the trip update time.
+Feed timestamp/age and static version/validation time are separate. A five-minute
+feed expiry, unknown source clock, clock over 60 seconds ahead, expired/unknown
+static coverage, or failed refresh hides arrival predictions. Passed arrival
+times disappear locally each second. Closing aborts the consumer and stops
+polling. View stop on map navigates to the static stop coordinate; it does not
+create a bus, movement trail or inferred position. Cancelled trips, skipped
+stops, NO_DATA, delay-only/departure-only updates, missing joins and absent
+arrival times are excluded, never replaced by schedules. No service-calendar
+interpolation is needed: only explicit realtime Unix arrival timestamps qualify.
+
+RTC terms support this personal, noncommercial local use, not unrestricted
+redistribution. The panel preserves RTC attribution, official source and terms
+links and an explicit no-affiliation notice. Public deployment is out of scope.
+`node scripts/qa-rtc-arrivals.mjs` (see its header) verifies real source-to-board
+timestamps, search, map focus, mobile fit, polling and close in an isolated QA
+browser, with no fabricated buses or feed fixtures.
+
 Docker Compose mounts the checkout with the shared SELinux `:z` label so
 containers can read it on enforcing SELinux hosts. The separate image-owned
 `node_modules` volume and loopback-only port publishing remain unchanged.
@@ -385,6 +418,40 @@ identities. A malformed or duplicate entry invalidates the complete custom-switc
 field. Existing whole-link size limits still apply.
 
 ## Data Library — October 21, 2026
+
+Movement includes opt-in Caltrans District 7 (Los Angeles/Ventura) and District
+11 (San Diego/Imperial) lane-closure snapshots. Add uses the existing portable
+Caltrans source: official keyless endpoints only, shared per-district requests,
+five-minute success/error caching, 20-second deadline including body reads and
+32 MiB response cap. Other library formats retain their existing safety limits.
+Only official active status is displayed, not schedule-inferred activity;
+planned/ended/cancelled/unknown records are excluded. Up to 1,000 begin points
+are shown with explicit truncation; endpoints are not road-following geometry,
+lane geometry or proof of full road closure. Properties retain source record
+time, retrieval time, scheduled and actual timestamps, official status flags,
+source URL and Caltrans attribution. Retrieval time is not proof of freshness.
+The pure converter supports labelled planned records for other consumers, but
+the library has no planned toggle and remains active-only. The existing library
+manager refreshes enabled datasets after cacheSeconds; the source itself starts
+no polling timer. No routing or safety advice is provided. Converter/source/
+integration tests use synthetic fixtures; successful conversion alone does not
+establish browser rendering. `scripts/qa-caltrans-library.mjs` exercises live
+Browse/Add for both districts, checks row counts, HTTP success and removal
+against an already running server; it does not restart the app.
+
+The Environment library includes two opt-in Tijuana river hydrology snapshots:
+NOAA NWPS TIJC1 (International Border, IBWC) and TJAC1 (near San Ysidro,
+San Diego County). Add fetches each keyless HTTPS gauge endpoint directly,
+with a 20-second timeout and 1 MiB cap, through the existing dataset loader.
+The `nwps` format reads the gauge's latest status, not GeoJSON or its history.
+Cards show observed stage/flow with upstream units and the observation's UTC
+timestamp; missing values, -999/-9999 and year-0001 times become null, never
+zero. Structured properties keep observed and forecast values/times separate
+and retain original flow units plus an explicit cfs conversion for cfs/kcfs.
+Empty forecasts do not become observations. These are snapshots on Add, not
+polling, water-quality measurements, border waits, flood alerts or safety advice.
+Attribution credits NOAA/NWS and each contributing agency. No upstream data is
+bundled and no Esri service or licence is used.
 
 DATA LAYERS keeps its curated core layers; everything else lives in the Data
 Library, opened from **Browse data library** at the foot of the panel. An entry
@@ -2461,6 +2528,114 @@ cameras nearest downtown, Uptown, the Medical Center, IAH and Galveston.
 `CCTV_HOUSTON_MAX_SOURCES` sets the pack cap (8–400). Snapshots update about
 every 3 minutes. The catalog-wide ceiling stays at 4,000 and is shared
 round-robin, so adding this pack does not silently drop another region.
+
+## San Ysidro / Tijuana border waits — November 14, 2026
+
+The LOCATION tray includes **San Ysidro waits**. It opens a native Vue/Pinia
+panel and flies to a San Ysidro preset through the existing navigation owner;
+the preset also offers PedWest. This is a regional inspection panel, not a new
+globally enabled layer or a share-token assignment.
+
+`GET /api/border-waits/san-ysidro` runs in development and preview. Its provider
+fetches the fixed public `https://bwt.cbp.gov/api/waittimes` JSON feed with no
+key, a 12-second deadline, a 2 MiB body cap, no redirects, coalesced requests,
+and a shared five-minute cache/failure cooldown. Same-site admission and rate
+limits precede acquisition. Only CBP ports `250401` (San Ysidro) and `250407`
+(PedWest) are retained. CBX (`250409`) is excluded. Vehicle Standard, Ready,
+SENTRI, main San Ysidro pedestrian Standard/Ready, and PedWest Standard/Ready
+remain seven independent rows. The main pedestrian report is not relabeled
+as a verified separate PedEast measurement.
+
+Zero minutes is a real report; null, blank, N/A and pending values are not zero.
+Each row keeps source operational status and its lane report timestamp.
+The parser combines the port date with the lane's explicit PST/PDT clock,
+validates Pacific daylight-saving offsets and calendar dates, and rejects
+future/unknown times without guessing a previous-day rollover. Feed retrieval
+time is shown separately and never establishes report freshness. A report
+older than 90 minutes is stale; an unverified timestamp makes the wait
+unavailable. Closed lanes suppress wait minutes, while timestamp freshness
+remains independently visible. Refresh failures retain explicitly labeled
+previous reports and suppress forecasts. The browser re-ages reports every
+minute while the panel is open; closing aborts pending requests and polling.
+
+Forecasts are unavailable until a lane has six distinct valid report timestamps
+over at least two hours within a rolling six-hour window, no adjacent gap over
+90 minutes, and a latest report no older than 30 minutes. Repeat fetches and
+same-time corrections do not increase the sample count. Closed, unavailable
+or stale observations reset that lane's history. The process-local history is
+bounded to 36 points per lane and is lost on server restart; it collects only
+on demand. An eligible forecast is explicitly an **unvalidated experimental
+30-minute persistence baseline** (last reported wait held constant), with a
+target timestamp, never a validated ETA or an accuracy/confidence claim.
+
+The Caltrans catalog recognizes parenthesized D11 location codes as stable
+camera IDs (`ca-d11-c214`, `ca-d11-c105`) alongside the existing `CODE --`
+format. A San Ysidro anchor at C214's published coordinates (32.55138,
+-117.04596) prioritizes border approaches within the unchanged 300-camera
+Caltrans cap and shared catalog allocation; it does not reserve slots or
+bypass source validation. C105 is at 32.55816, -117.06206 (Dairy Mart Road).
+
+Caltrans C214 and C105 are optional southbound approach-context stills through
+the existing registered CCTV catalog/frame proxy, at most one manual refresh
+per minute. The additive `?upstreamOnly=1` frame option skips the paid Street
+View fallback on upstream failure and returns 503 instead. Existing frame
+callers retain their behavior. Only `upstream-image` responses display: historical Street View,
+synthetic and maintenance fallbacks are rejected. Image retrieval time is
+shown; capture time is unknown unless read from the image overlay. Official
+image links remain available when catalog caps, settings or outages omit a
+camera. BorderTraffic and BorderCam are external links only. No video rights,
+subscriptions or account access are implied. Northbound queue length remains
+unavailable. Only public traffic aggregates are used; no individual tracking
+or private ALPR data is acquired.
+
+The panel also links externally to Visual Impact and the official NewCity /
+Webcams de México page. Dated source-specific labels reflect the 2026-11-14
+parent verification: NewCity playback advanced from 64 to 218 decoded frames
+with advancing time and no media error; Visual Impact decoded video, then
+stalled with media error 3 (VideoToolbox -12909), making continuous playback
+unreliable. This supersedes the earlier NewCity no-decoded-frames observation,
+not the unresolved upstream Ready Lane coverage question. Dated observations
+do not guarantee current playback or full coverage. Ready Lane geometry,
+queue-tail visibility and precise capture latency remain unverified. External
+services may require subscriptions; no embedding permission is established.
+These links add no embeds, media hotlinks, proxies or camera coordinates;
+public traffic aggregates only, with no individual tracking.
+
+The same API adds a separate `southbound` object from the fixed public
+`https://quickmap.dot.ca.gov/data/border_wait.html` fragment. The native panel
+shows Caltrans-published current and expected auto waits for San Ysidro I-5
+and I-805 separately from northbound CBP lanes. A bounded structural table
+parser expands rowspans/colspans and rejects changed headings or missing routes;
+Otay Mesa is not included. `No Wait` remains categorical (not numeric zero).
+Column target clocks, publication text/time and retrieval time stay separate;
+expected columns retain their source order even when not chronological.
+
+The source omits its timezone: the UI explicitly discloses an
+`America/Los_Angeles` assumption, validated against Pacific DST. Invalid or
+ambiguous clocks are unavailable; future publications/current targets are
+flagged, never called current. Target dates use the publication date, with no
+midnight rollover guessed; targets over 12 hours from publication are rejected.
+Publication/current age over 90 minutes is stale (a product rule, not an SLA),
+and expected targets expire as soon as their target time passes. Browser and
+server both re-age values. Previous values remain labeled on refresh failure,
+with expectations unavailable. These are provider-published expectations, not
+GEV predictions, confidence intervals, queue lengths or inferred camera ETAs.
+
+Caltrans acquisition runs in parallel with CBP, with independent failure state,
+a 12-second timeout, 128 KiB body cap, redirect rejection, and the same shared
+five-minute cache/cooldown, coalescing and admission guards. No user-supplied
+URL is fetched. No dependencies or credentials were added.
+
+Implementation and validation: `docs/SAN-YSIDRO-IMPLEMENTATION.md`.
+`node scripts/qa-san-ysidro.mjs` exercises the real Vite middleware in process,
+including a fixture success and an actual upstream request without binding a
+port. Focused source/provider/controller/component tests sit beside their owners.
+`scripts/qa-san-ysidro-browser.mjs` runs the actual app without feed mocks,
+checks map arrival, seven CBP lanes, two Caltrans routes, responsive bounds,
+unobstructed mobile controls and close behavior, and captures screenshots.
+Set `QA_BASE_URL`, `QA_SHOTS_DIR` and, if needed, `PUPPETEER_EXECUTABLE_PATH`.
+The regional panel stacks above floating docks/locale controls but below the
+first-launch and provider-settings dialogs.
 
 ## Location control ownership
 

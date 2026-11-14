@@ -7,6 +7,12 @@
  * cancellation; this module owns shape, coordinate sanity and feature caps.
  */
 
+import {
+  CALTRANS_LCS_URLS,
+  normalizeCaltransLaneClosures,
+} from '../sources/caltransLaneClosures.js';
+import { caltransLaneClosuresToGeojson } from '../sources/caltransLaneClosureGeojson.js';
+
 const GEOMETRY_TYPES = new Set([
   'Point',
   'MultiPoint',
@@ -309,6 +315,67 @@ function jsonCandidates(payload, { records, columns } = {}) {
   });
 }
 
+function nwpsCandidates(payload) {
+  if (!payload?.lid || !payload?.status || !payload?.name)
+    throw new LibraryFormatError('not an NWPS gauge');
+  const number = (value) =>
+    typeof value === 'number' &&
+    Number.isFinite(value) &&
+    value !== -999 &&
+    value !== -9999
+      ? value
+      : null;
+  const status = (record) => {
+    record = record || {};
+    const flow = number(record.secondary);
+    return {
+      stage: number(record.primary),
+      stageUnit: record.primaryUnit || null,
+      flow,
+      flowUnit: record.secondaryUnit || null,
+      flowCfs:
+        flow === null
+          ? null
+          : record.secondaryUnit === 'kcfs'
+            ? flow * 1000
+            : record.secondaryUnit === 'cfs'
+              ? flow
+              : null,
+      validTime:
+        typeof record.validTime === 'string' &&
+        !record.validTime.startsWith('0001-') &&
+        Number.isFinite(Date.parse(record.validTime))
+          ? record.validTime
+          : null,
+    };
+  };
+  const observed = status(payload.status.observed);
+  const forecast = status(payload.status.forecast);
+  const measure = (value, unit) =>
+    value === null ? 'unavailable' : `${value} ${unit || '(unit unknown)'}`;
+  return [
+    {
+      type: 'Feature',
+      geometry: {
+        type: 'Point',
+        coordinates: [payload.longitude, payload.latitude],
+      },
+      properties: {
+        name: payload.name,
+        lid: payload.lid,
+        observed,
+        forecast,
+        attribution: (payload.dataAttribution || [])
+          .map((row) => row.text)
+          .filter(Boolean)
+          .join('; '),
+        Observed: `Stage ${measure(observed.stage, observed.stageUnit)}; flow ${measure(observed.flow, observed.flowUnit)}`,
+        ObservedUTC: observed.validTime || 'unavailable',
+      },
+    },
+  ];
+}
+
 /**
  * Parse one upstream body in a declared vector format.
  * @param {'geojson'|'geojsonl'|'csv'|'json'|'arcgis'} format
@@ -330,6 +397,30 @@ export function parseLibraryBody(format, text, source = {}) {
     return { candidates, exceededTransferLimit: false };
   }
   const payload = parseLibraryJson(text);
+  if (format === 'caltrans-lcs') {
+    const district = Object.keys(CALTRANS_LCS_URLS).find(
+      (key) => CALTRANS_LCS_URLS[key] === source.url,
+    );
+    if (!district)
+      throw new LibraryFormatError('unsupported Caltrans district URL');
+    const collection = caltransLaneClosuresToGeojson(
+      {
+        ...normalizeCaltransLaneClosures(payload, { district }),
+        sourceUrl: source.url,
+        fetchedAt: null,
+      },
+      { maxFeatures: source.maxFeatures ?? 1000 },
+    );
+    return {
+      candidates: collection.features,
+      exceededTransferLimit: collection.truncated,
+    };
+  }
+  if (format === 'nwps')
+    return {
+      candidates: nwpsCandidates(payload),
+      exceededTransferLimit: false,
+    };
   if (format === 'json')
     return {
       candidates: jsonCandidates(payload, source),
@@ -446,6 +537,7 @@ export async function loadLibraryDataset(
       source,
     );
     candidates.push(...parsed.candidates);
+    truncated = parsed.exceededTransferLimit;
   }
   const bounded = boundLibraryFeatures(candidates, {
     maxFeatures: source.maxFeatures,

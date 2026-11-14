@@ -36,6 +36,17 @@ host layer owns its code. Provider entries (code implementing a family
 contract, such as a Street Level provider) are not supported yet and are
 refused by the validator.
 
+### Caltrans lane closures
+
+The `caltrans-lcs` dataset adapter supports only the official D7/D11 LCS JSON
+endpoints with `browser-direct`, `cacheSeconds: 300`, `maxBytes: 33554432` and
+`maxFeatures` between 1 and 1000. Its browser loader reuses the portable source
+for shared requests, a five-minute success/error cache and a 20-second body
+deadline. This does not raise limits for other formats. Use `label: "name"`
+and `fields: ["closureDetails", "geometryDetails"]`. The library is active-only;
+points mark closure beginnings, not road-following lines. Source timestamps
+and scheduled timestamps remain distinct in feature properties.
+
 ## Add an entry
 
 1. Create `src/library/entries/<id>.json`. The id is 3–48 lowercase letters,
@@ -157,6 +168,13 @@ terms and lists the id in `GEV_LIBRARY_ENABLE`. Re-check an entry's terms and
 drop the opt-in when its publisher states an open licence.
 
 ## Choosing a fetch mode
+
+The `nwps` dataset format handles a NOAA NWPS single-gauge metadata response
+(`/nwps/v1/gauges/<lid>`), including its latest observed and forecast status.
+Use `display.fields: ["Observed", "ObservedUTC"]` to keep units and observation
+time visible. It is a snapshot, not a time-series/history or forecast renderer.
+Missing numeric sentinels remain null. Initial entries are TIJC1 and TJAC1;
+do not use generic JSON/GeoJSON parsing for NWPS responses.
 
 Use `browser-direct` when the upstream answers a browser on another origin
 (`Access-Control-Allow-Origin`) and needs no key. Tile servers must send CORS

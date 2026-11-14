@@ -28,6 +28,8 @@ export const DATASET_FORMATS = Object.freeze([
   'json',
   'arcgis',
   'geoparquet',
+  'nwps',
+  'caltrans-lcs',
 ]);
 
 /** Raster formats a `tiles` entry may declare. */
@@ -268,6 +270,21 @@ function checkSource(entry, errors) {
     errors.push(`source.format must be one of ${formats.join(', ')}`);
   if (!libraryUpstreamUrl(source.url))
     errors.push('source.url must be an https URL without credentials');
+  if (source.format === 'caltrans-lcs') {
+    if (
+      !/^https:\/\/cwwp2\.dot\.ca\.gov\/data\/(?:d7\/lcs\/lcsStatusD07|d11\/lcs\/lcsStatusD11)\.json$/.test(
+        source.url,
+      ) ||
+      source.fetch !== 'browser-direct' ||
+      source.cacheSeconds !== 300 ||
+      source.maxBytes !== 33554432 ||
+      !boundedInteger(source.maxFeatures, 1, 1000) ||
+      source.query !== undefined
+    )
+      errors.push(
+        'caltrans-lcs requires official D7/D11 URL, browser-direct, cacheSeconds 300, maxBytes 33554432 and maxFeatures 1–1000, without query',
+      );
+  }
   if (kind === 'pack') return;
   if (!FETCH_MODES.includes(source.fetch))
     errors.push(`source.fetch must be one of ${FETCH_MODES.join(', ')}`);

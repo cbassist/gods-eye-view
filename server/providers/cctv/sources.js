@@ -339,10 +339,11 @@ export async function loadCaltransSourcesFromOpenData() {
       if (!imageUrl) continue;
 
       const locationName = String(loc.locationName || '').trim();
-      // Leading token of locationName is the stable camera code ("TV102 -- I-580 : …").
-      const codeMatch = /^([A-Za-z0-9_-]+)\s*--/.exec(locationName);
+      // Districts use both "TV102 -- I-580 : …" and "(C105)I-5 : …".
+      const codeMatch =
+        /^(?:([A-Za-z0-9_-]+)\s*--|\(([A-Za-z0-9_-]+)\))\s*/.exec(locationName);
       const code = (
-        codeMatch ? codeMatch[1] : `x${cameras.length}`
+        codeMatch ? codeMatch[1] || codeMatch[2] : `x${cameras.length}`
       ).toLowerCase();
       const cameraId = `ca-d${district}-${code}`;
 
@@ -350,7 +351,7 @@ export async function loadCaltransSourcesFromOpenData() {
       const heading = directionToHeading(loc.direction, true);
       const hasHeading = Number.isFinite(heading);
       const label =
-        locationName.replace(/^([A-Za-z0-9_-]+)\s*--\s*/, '') ||
+        (codeMatch ? locationName.slice(codeMatch[0].length) : locationName) ||
         `Caltrans D${district} ${code}`;
       cameras.push({
         id: cameraId,

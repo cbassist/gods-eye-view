@@ -11,7 +11,13 @@ import { usePanelChromeStore } from '../stores/panelChrome.js';
 import { usePointerReticleStore } from '../stores/pointerReticle.js';
 import { useVoiceStore } from '../stores/voice.js';
 import PhoneTabBar from './panels/PhoneTabBar.vue';
+import RtcArrivalsPanel from './panels/RtcArrivalsPanel.vue';
+import { useRtcArrivalsStore } from '../stores/rtcArrivals.js';
+const rtcArrivals = useRtcArrivalsStore();
 import VoiceControl from './panels/VoiceControl.vue';
+import BorderWaitsPanel from './panels/BorderWaitsPanel.vue';
+import { useBorderWaitsStore } from '../stores/borderWaits.js';
+const borderWaits = useBorderWaitsStore();
 
 // VisualSettings publishes the active style and the map source controls
 // their chip row; until they do, the dock shows its initial markup. A style
@@ -148,6 +154,8 @@ function selectMapSource(chip) {
         <div id="poi-row" class="poi-row-container" v-class-toggle="{ expanded: !!loc?.poisExpanded }"><UiButton v-for="poi in loc?.pois" :key="`${loc.poiCity}:${poi.index}`" class="poi-pill" :pressed="Boolean(poi.active)" pressed-class="active" :data-poi-index="poi.index" @click="locationControls?.choosePoi(poi.index)"><span class="poi-pill-key">{{ poi.key }}</span><span class="poi-pill-name">{{ poi.name }}</span></UiButton></div>
         <div class="location-bar-divider" id="location-bar-divider" v-class-toggle="{ visible: !!loc?.poisExpanded }"></div>
         <div class="location-city-row">
+          <UiButton id="rtc-arrivals-open" class="location-pill" @click="rtcArrivals.act('show')">{{ t('RTC Las Vegas arrivals') }}</UiButton>
+          <UiButton id="san-ysidro-waits-open" class="location-pill" @click="borderWaits.act('show')">{{ t('San Ysidro waits') }}</UiButton>
           <div id="location-pills" class="location-pills"><UiButton v-for="city in loc?.cities" :key="city.id" class="location-pill" :pressed="Boolean(city.active)" pressed-class="active" :data-location-id="city.id" @click="locationControls?.chooseCity(city.id)">{{ city.label }}</UiButton></div>
           <div class="location-search-wrap">
             <button id="search-toggle" class="search-toggle-btn" :title="t('Search any location')" @click="locationControls?.toggleSearch()">
@@ -162,6 +170,8 @@ function selectMapSource(chip) {
   </div>
   </template>
   <PhoneTabBar />
+  <RtcArrivalsPanel />
+  <BorderWaitsPanel />
   <Teleport to="body">
     <div v-for="reticle in reticles" :key="reticle.owner.key" class="gev-pointer-reticle" aria-hidden="true" :hidden="!reticle.visible" :data-target="reticle.target" :style="{ left: `${reticle.left}px`, top: `${reticle.top}px` }"></div>
   </Teleport>

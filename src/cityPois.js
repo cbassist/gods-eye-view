@@ -6,7 +6,7 @@
 
 /**
  * Points of Interest per city.
- * Each city has 5 POIs; the first is the default fly-to landmark.
+ * Each destination has one or more POIs; the first is the default fly-to landmark.
  *
  * Field reference:
  *   alt     — RANGE (distance from target in meters), NOT absolute altitude
@@ -15,6 +15,34 @@
  *   buildingHeight — estimated height of landmark center above ground (meters)
  */
 export const CITY_POIS = {
+  'san-ysidro': {
+    name: 'San Ysidro / Tijuana',
+    groundElevation: 20,
+    viewBounds: {
+      southwest: { lat: 32.52, lng: -117.06 },
+      northeast: { lat: 32.57, lng: -117.01 },
+    },
+    pois: [
+      {
+        name: 'San Ysidro Port of Entry',
+        lat: 32.5422,
+        lon: -117.0306,
+        alt: 2400,
+        pitch: -55,
+        heading: 180,
+        buildingHeight: 0,
+      },
+      {
+        name: 'PedWest',
+        lat: 32.5416,
+        lon: -117.0365,
+        alt: 1100,
+        pitch: -50,
+        heading: 180,
+        buildingHeight: 0,
+      },
+    ],
+  },
   austin: {
     name: 'Austin',
     groundElevation: 150, // meters above WGS84 ellipsoid

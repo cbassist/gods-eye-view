@@ -16,6 +16,8 @@ import amsterdamTrafficCameras from './entries/amsterdam-traffic-cameras.json' w
 import bayernDop40 from './entries/bayern-dop40.json' with { type: 'json' };
 import bismarckMandanNd from './entries/bismarck-mandan-nd.json' with { type: 'json' };
 import bkgTopplusOpen from './entries/bkg-topplus-open.json' with { type: 'json' };
+import caltransLcsD11 from './entries/caltrans-lcs-d11.json' with { type: 'json' };
+import caltransLcsD7 from './entries/caltrans-lcs-d7.json' with { type: 'json' };
 import cctvFloridaFl511 from './entries/cctv-florida-fl511.json' with { type: 'json' };
 import cctvLithuania from './entries/cctv-lithuania.json' with { type: 'json' };
 import cctvNycDot from './entries/cctv-nyc-dot.json' with { type: 'json' };
@@ -78,6 +80,8 @@ import ndStatewideImagery from './entries/nd-statewide-imagery.json' with { type
 import newOrleansRpcLa from './entries/new-orleans-rpc-la.json' with { type: 'json' };
 import nhStatewideImagery from './entries/nh-statewide-imagery.json' with { type: 'json' };
 import njStatewideImagery from './entries/nj-statewide-imagery.json' with { type: 'json' };
+import noaaNwpsTijc1 from './entries/noaa-nwps-tijc1.json' with { type: 'json' };
+import noaaNwpsTjac1 from './entries/noaa-nwps-tjac1.json' with { type: 'json' };
 import noaaTideStations from './entries/noaa-tide-stations.json' with { type: 'json' };
 import nrwDop from './entries/nrw-dop.json' with { type: 'json' };
 import nswImagery from './entries/nsw-imagery.json' with { type: 'json' };
@@ -115,6 +119,8 @@ export const LIBRARY_MANIFESTS = Object.freeze([
   bayernDop40,
   bismarckMandanNd,
   bkgTopplusOpen,
+  caltransLcsD11,
+  caltransLcsD7,
   cctvFloridaFl511,
   cctvLithuania,
   cctvNycDot,
@@ -177,6 +183,8 @@ export const LIBRARY_MANIFESTS = Object.freeze([
   newOrleansRpcLa,
   nhStatewideImagery,
   njStatewideImagery,
+  noaaNwpsTijc1,
+  noaaNwpsTjac1,
   noaaTideStations,
   nrwDop,
   nswImagery,

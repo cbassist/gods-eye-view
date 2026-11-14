@@ -1,6 +1,73 @@
 # Data Sources & Attribution
 
+## RTC Southern Nevada arrivals — personal local use only
+
+The LOCATION stop-arrival board fetches the official
+[static GTFS ZIP](https://developer.rtcsnv.com/transitData/google_transit.zip)
+and [GTFS-Realtime trip updates](https://developer.rtcsnv.com/transitData/tripUpdates.pb)
+at runtime, joining explicit arrival timestamps to stops and routes. Attribution:
+**Regional Transportation Commission of Southern Nevada (RTC)**.
+[Official developer page](https://www.rtcsnv.com/ways-to-travel/transit-services/for-developers/)
+and [RTC terms and notices](https://www.rtcsnv.com/terms-of-use/) remain linked
+in the display. RTC permits personal noncommercial use with notices preserved;
+this is **not** an open redistribution license. The feature is restricted to
+local sockets; do not publicly deploy or proxy it without resolving permissions.
+No affiliation, endorsement, live bus positions, or service guarantee is claimed.
+Static tables and realtime data are held only in memory; no actual upstream
+data is bundled in this repository. No credentials or paid service are needed.
+
 God's Eye View's **code** is [MIT](LICENSE)-licensed. **The MIT grant covers the source code only — it does NOT extend to third-party data or visual assets.** Every third-party source keeps its own license and terms. This file documents the live and bundled data sources. The bundled 3D models are the project's own procedural fleet models, MIT-licensed with the code ([`public/models/README.md`](public/models/README.md)).
+
+San Ysidro regional panel (2026-11-14): official reported northbound waits are
+fetched at runtime from [CBP Border Wait Times](https://bwt.cbp.gov), specifically
+the public [waittimes JSON feed](https://bwt.cbp.gov/api/waittimes). No key or
+account is required. Attribution: **U.S. Customs and Border Protection**,
+linked in the panel and registered in the map credit display. These are public
+U.S. government reports; no separate API-specific license or service guarantee
+was identified in this implementation review. Provider website terms continue
+to apply; the app's MIT license does not grant rights to third-party media.
+No production report snapshot is bundled. Only ports 250401 and 250407 are
+retained in memory, with lane-specific timestamps and a bounded aggregate
+history for the explicitly unvalidated persistence baseline.
+
+Southbound current/expected waits are fetched at runtime from the public
+[Caltrans QuickMap HTML fragment](https://quickmap.dot.ca.gov/data/border_wait.html),
+linked to the [official display](https://quickmap.dot.ca.gov/borderwait.html)
+and attributed to **Caltrans** in the panel. No key or account is required.
+[Caltrans conditions of use](https://dot.ca.gov/conditions-of-use) describe
+information as public domain unless otherwise indicated, with third-party and
+copyright exceptions; this is not an API SLA or a media redistribution grant.
+Only San Ysidro I-5/I-805 public aggregates are retained in memory. No live
+snapshot is bundled. Synthetic parser fixtures exercise the table structure.
+Source timezone is unstated; Pacific time is an explicitly disclosed assumption.
+
+The panel reuses existing **Caltrans** public D11 camera catalog/frame handling
+for C214 (SB I-5 at Via De San Ysidro) and C105 (SB I-5 at Dairy Mart Rd).
+[Caltrans CCTV information and conditions](https://cwwp2.dot.ca.gov/closed-circuit-television-cameras.html)
+govern this imagery; existing Caltrans attribution remains in force. These are
+southbound context stills, not a calibrated northbound queue measurement.
+[BorderTraffic](https://bordertraffic.com/California-Baja/San-Ysidro-Tijuana.aspx)
+and [BorderCam](https://www.bordercam.cam) are external provider links only:
+their video is neither embedded nor redistributed, and playback/coverage and
+any subscription entitlement are not asserted. No private camera or ALPR data
+is used.
+
+[Visual Impact](https://vi-ads.com/bordertrafficcams/) and
+[NewCity · Webcams de México](https://webcamsdemexico.com/webcam/tijuana/)
+are also external source-page links only, attributed by name in the panel.
+The 2026-11-14 parent browser verification supersedes the earlier NewCity
+no-decoded-frames result: its official-page video advanced from 64 to 218
+decoded frames with advancing playback time and no media error. This is dated
+observed playback, not guaranteed current availability. Visual Impact decoded
+video, then stalled at 282 frames with media error 3 (VideoToolbox -12909);
+continuous playback is unreliable despite earlier updating approach snapshots.
+Upstream Ready Lane geometry, queue-tail visibility, full corridor coverage
+and precise capture latency remain unverified. Subscription entitlement and
+embedding permission are not established by these observations.
+No media is embedded, proxied, hotlinked or redistributed, and no media
+license is inferred; provider terms apply. The old
+`webcamsdemexico.net/tijuana1/live.jpg` (Last-Modified 2023) is not evidence
+of current NewCity imagery. Recorded 2022 city street videos are excluded.
 
 How to read this:
 
@@ -305,6 +372,8 @@ Each Data Library entry is a manifest in `src/library/entries/` pointing at a li
 | **Digitales Orthophoto Bayern (DOP 40 cm, open)** (`bayern-dop40`, `geoservices.bayern.de`) | tiles, bbox, browser-direct | [CC BY 4.0](https://geodaten.bayern.de/opengeodata/) | "© Bayerische Vermessungsverwaltung" |
 | **Bismarck–Mandan, North Dakota Aerial Photography** (`bismarck-mandan-nd`, `ndgishub.nd.gov`) | tiles, bbox, browser-direct; operator adds `bismarck-mandan-nd` to `GEV_LIBRARY_ENABLE` | [Local government open data — see publisher terms](https://www.gis.nd.gov/) | "95West Aerial Mapping" |
 | **TopPlusOpen basemap (BKG)** (`bkg-topplus-open`, `sgx.geodatenzentrum.de`) | tiles, xyz, browser-direct | [Datenlizenz Deutschland – Namensnennung 2.0](https://www.govdata.de/dl-de/by-2-0) | "© BKG, dl-de/by-2-0" |
+| **Caltrans active lane closures — District 11** (`caltrans-lcs-d11`, `cwwp2.dot.ca.gov`) | dataset, caltrans-lcs, browser-direct | [Caltrans public data; attribution required](https://dot.ca.gov/conditions-of-use) | "California Department of Transportation (Caltrans)" |
+| **Caltrans active lane closures — District 7** (`caltrans-lcs-d7`, `cwwp2.dot.ca.gov`) | dataset, caltrans-lcs, browser-direct | [Caltrans public data; attribution required](https://dot.ca.gov/conditions-of-use) | "California Department of Transportation (Caltrans)" |
 | **Florida cameras (FL511)** (`cctv-florida-fl511`, `fl511.com`) | CCTV pack; operator sets `CCTV_FLORIDA_ENABLED=1` | [FL511 content: individual personal use only](https://fl511.com/privacy#disclaimer) | "Florida DOT — FL511.com" |
 | **Lithuania road cameras (Via Lietuva)** (`cctv-lithuania`, `eismoinfo.lt`) | CCTV pack; operator sets `CCTV_LITHUANIA_ENABLED=1` | [Via Lietuva open-data statement; camera photo coverage unconfirmed](https://eismoinfo.lt/eismoinfo-backend/content?id=44) | "Via Lietuva / eismoinfo.lt" |
 | **New York City cameras (NYC DOT TMC)** (`cctv-nyc-dot`, `webcams.nyctmc.org`) | CCTV pack; operator sets `CCTV_NYC_ENABLED=1` | [NYC DOT camera feed: data-sharing agreement required](https://www.nyc.gov/html/dot/html/about/datafeeds.shtml) | "NYC DOT Traffic Management Center" |
@@ -367,6 +436,8 @@ Each Data Library entry is a manifest in `src/library/entries/` pointing at a li
 | **New Orleans Regional Planning Commission Imagery** (`new-orleans-rpc-la`, `tiles.arcgis.com`) | tiles, xyz, browser-direct; operator adds `new-orleans-rpc-la` to `GEV_LIBRARY_ENABLE` | [Local government open data — see publisher terms](https://www.norpc.org/) | "Regional Planning Commission for Jefferson, Orleans, Plaquemines, St. Bernard, St. Charles, St. John the Baptist, St. Tammany, and Tangipahoa Parishes (RPC)" |
 | **New Hampshire Statewide Imagery (2022)** (`nh-statewide-imagery`, `nhgeodata.unh.edu`) | tiles, bbox, browser-direct; operator adds `nh-statewide-imagery` to `GEV_LIBRARY_ENABLE` | [Open — NH GRANIT terms](https://www.granit.unh.edu/) | "NH GRANIT, University of New Hampshire" |
 | **New Jersey Statewide Imagery (2015)** (`nj-statewide-imagery`, `maps.nj.gov`) | tiles, xyz, browser-direct; operator adds `nj-statewide-imagery` to `GEV_LIBRARY_ENABLE` | [Open — State of New Jersey provides data 'as is'](https://njgin.nj.gov/) | "Project definition, funding requests, and data distribution by NJ Office of Information Technology, Office of Geographic Information Systems (NJOIT - OGIS). Funding for the imagery project provided by" |
+| **Tijuana river hydrology — TIJC1** (`noaa-nwps-tijc1`, `api.water.noaa.gov`) | dataset, nwps, browser-direct | [NWS public-domain data (unless otherwise noted)](https://www.weather.gov/disclaimer) | "NOAA/NWS National Water Prediction Service; IBWC — International Boundary and Water Commission" |
+| **Tijuana river hydrology — TJAC1** (`noaa-nwps-tjac1`, `api.water.noaa.gov`) | dataset, nwps, browser-direct | [NWS public-domain data (unless otherwise noted)](https://www.weather.gov/disclaimer) | "NOAA/NWS National Water Prediction Service; San Diego County" |
 | **US tide stations (NOAA CO-OPS)** (`noaa-tide-stations`, `api.tidesandcurrents.noaa.gov`) | dataset, json, browser-direct | [NOAA data: U.S. public domain](https://tidesandcurrents.noaa.gov/disclaimers.html) | "NOAA Center for Operational Oceanographic Products and Services (CO-OPS)" |
 | **Digitale Orthophotos NRW (DOP 10 cm)** (`nrw-dop`, `www.wms.nrw.de`) | tiles, bbox, browser-direct | [Datenlizenz Deutschland – Zero (public-domain-like)](https://www.govdata.de/dl-de/zero-2-0) | "Geobasis NRW (dl-de/zero-2-0)" |
 | **NSW Imagery (Six Maps)** (`nsw-imagery`, `maps.six.nsw.gov.au`) | tiles, xyz, browser-direct | [CC BY 4.0](https://www.spatial.nsw.gov.au/products_and_services/web_services) | "© Spatial Services NSW" |
